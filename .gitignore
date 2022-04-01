@@ -129,9 +129,12 @@ dmypy.json
 .pyre/
 
 # Project specific additions
+archive/
 Images/
 archive.zip
 *.hdf5
 *.json
 *.pdf
 captions.txt
+caption_datasets/
+dataset/
