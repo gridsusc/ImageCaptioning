@@ -6,4 +6,6 @@ Based on this Tutorial https://github.com/sgrvinod/a-PyTorch-Tutorial-to-Image-C
 Update 2022/03/31 - Decided to use flickr8k dataset initially. Worked on creating the hdf5 file code and the 2 JSON files. Had a few questions in mind which were put in the python script as comments. Did not yet consider train-val-test splits and yet to make the word2idx mapping. To be able to run the code in make_dataset.py be sure to downlaod the flickr8k dataset in the required format.
 
 Update 2022/04/01 - Token captions outputted to json, added padding, added word to index mapping, finalized image pre-processing,
-decided on train test val splits following Andrej Karpathy splits. 
+decided on train test val splits following Andrej Karpathy splits.
+
+Update 2022/04/02 - Factored all previous progress in the .py file, gave finishing touches for the train test val splits, added comments in the .py file to make it more readble
