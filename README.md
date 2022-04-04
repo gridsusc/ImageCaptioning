@@ -9,3 +9,5 @@ Update 2022/04/01 - Token captions outputted to json, added padding, added word 
 decided on train test val splits following Andrej Karpathy splits.
 
 Update 2022/04/02 - Factored all previous progress in the .py file, gave finishing touches for the train test val splits, added comments in the .py file to make it more readble
+
+Update 2022/04/03 - Added pytorch dataset class file, In this the caption was also processed to make it a single tensor 
