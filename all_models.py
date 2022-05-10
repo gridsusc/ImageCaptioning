@@ -1,9 +1,6 @@
 import torch
 from torch import nn
 from torchvision import models, transforms
-from torchsummary import summary
-from pytorch_dataset_class import fetch_data
-from torch.utils.data import DataLoader
 
 device = "cuda" if torch.cuda.is_available() else "cpu"
 
@@ -20,6 +17,9 @@ class encoder(nn.Module):
 		out = self.all_layers_encoder(x)
 		return out
 
+# from pytorch_dataset_class import fetch_data
+# from torchsummary import summary
+# from torch.utils.data import DataLoader
 # enc = encoder()
 # summary(enc,(3,256,256))
 # exit()
