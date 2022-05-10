@@ -91,7 +91,8 @@ vocab_size = 5000
 if len(sortedWords)<vocab_size:
 	vocab_size = len(sortedWords)
 word_to_index = {word[0]: i for i, word in enumerate(sortedWords[:vocab_size])}
-tokens = {"<sos>": vocab_size+1, "<eos>": vocab_size+2, "<pad>": vocab_size+3, "<unk>": vocab_size+4}
+# tokens = {"<sos>": vocab_size+1, "<eos>": vocab_size+2, "<pad>": vocab_size+3, "<unk>": vocab_size+4}
+tokens = {"<sos>": vocab_size, "<eos>": vocab_size+1, "<pad>": vocab_size+2, "<unk>": vocab_size+3} ## Had to fix this later while writing all_models.py
 word_to_index.update(tokens)
 index_to_word = {v: k for k, v in word_to_index.items()}
 word2idx_filename = "word_to_index_map.json"

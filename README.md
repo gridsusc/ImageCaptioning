@@ -10,4 +10,6 @@ decided on train test val splits following Andrej Karpathy splits.
 
 Update 2022/04/02 - Factored all previous progress in the .py file, gave finishing touches for the train test val splits, added comments in the .py file to make it more readble
 
-Update 2022/04/03 - Added pytorch dataset class file, In this the caption was also processed to make it a single tensor 
+Update 2022/04/03 - Added pytorch dataset class file, In this the caption was also processed to make it a single tensor
+
+Update 2022/05/09 - Fixed a small bug in make_dataset.py (off-by-one error) , Completed the file all_models.py which has the encoder model, attention network and decoder with attention network (cannot check for correctness now and there are bound to be bugs in this in the future which will pop up while writing the training code)
