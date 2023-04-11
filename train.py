@@ -1,4 +1,5 @@
 import os
+import json
 import time
 
 import torch
@@ -9,9 +10,12 @@ from torch.utils.data import DataLoader
 from all_models import *
 from pytorch_dataset_class import *
 
+with open("./dataset/word_to_index_map.json") as f:
+    n_words = max(json.load(f).values())+1
+
 dataset_path = "./dataset"
 attention_size = 512
-one_hot_size = 5000 + 4
+one_hot_size = n_words
 embedding_size = 512
 dropout_probab = 0.5
 
@@ -26,7 +30,7 @@ pf = 64  # Print frequency
 
 ckpt_filepath = f"./model_files/best_model_{dropout_probab}dropout.pth.tar"
 
-device = "cuda" if torch.cuda.is_available() else "cpu"
+device = "mps" if torch.backends.mps.is_available() else "cuda" if torch.cuda.is_available() else "cpu"
 print(f"Device being used is {device}")
 
 with open(os.path.join(dataset_path, "index_to_word.json"), "r") as f:

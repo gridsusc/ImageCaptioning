@@ -5,6 +5,10 @@ from nltk.tokenize import RegexpTokenizer
 import torch
 from torchvision import transforms
 
+# You can download dataset from: 
+# https://www.kaggle.com/datasets/adityajn105/flickr8k for images and captions
+# https://www.kaggle.com/datasets/shtvkumar/karpathy-splits?resource=download&select=dataset_flickr8k.json for splits
+
 # You might have to uncomment these lines if you are running this code for the first time (to downlaod the required nltk tokenizer)
 # import nltk
 # nltk.download('popular')
@@ -18,7 +22,7 @@ dataset_path = "./dataset/"
 os.makedirs(dataset_path, exist_ok=True)
 
 ### Getting the ordered list of all image names in all splits
-split_filename = "dataset_flickr8k.json"
+split_filename = "dataset_flickr8k.json" ### 
 with open(os.path.join(split_path, split_filename), "r") as f:
     cap_data = json.load(f)
 train, test, val = [], [], []
@@ -30,6 +34,9 @@ for file, split in file_split:
         test.append(file)
     if split == "val":
         val.append(file)
+
+train,test,val = train[:60],test[:10],val[:10]
+
 print(
     f"Number of images in:\ntrain = {len(train)}\ntest = {len(test)}\nval = {len(val)}\n"
 )
@@ -62,7 +69,8 @@ createHDF5(images_path, val, "val", dataset_path)
 
 ### Parsing the captions file and make a dictionary where Key is image name and value is list of all 5 captions(stripped, converted to lowercase, and tokenized without punctuations)
 ### (Assumption here is that all images are .jpg formats)
-with open("captions.txt", "r") as f:
+captions_filename = "captions.txt"
+with open(os.path.join(split_path, captions_filename), "r") as f:
     caption_list = f.readlines()
 caption_dict = {}
 tokenizer = RegexpTokenizer(r"\w+")
@@ -109,9 +117,9 @@ index_to_word = {v: k for k, v in word_to_index.items()}
 word2idx_filename = "word_to_index_map.json"
 idx2word_filename = "index_to_word.json"
 with open(os.path.join(dataset_path, word2idx_filename), "w") as f:
-    json.dump(word_to_index, f)
+    f.write(json.dumps(word_to_index, indent =4))
 with open(os.path.join(dataset_path, idx2word_filename), "w") as f:
-    json.dump(index_to_word, f)
+    f.write(json.dumps(index_to_word, indent =4))
 
 ### Defining the baseCaptionLen based on max caption length for train dataset to decide the amount of padding
 baseCaptionLen = max(map(len, train_caps_json)) + 2
@@ -147,19 +155,19 @@ train_caps_filename = "tokenized_captions_train.json"
 test_caps_filename = "tokenized_captions_test.json"
 val_caps_filename = "tokenized_captions_val.json"
 with open(os.path.join(dataset_path, train_caps_filename), "w") as f:
-    json.dump(padded_train_caps_json, f)
+    f.write(json.dumps(padded_train_caps_json, indent=4))
 with open(os.path.join(dataset_path, test_caps_filename), "w") as f:
-    json.dump(padded_test_caps_json, f)
+    f.write(json.dumps(padded_test_caps_json, indent=4))
 with open(os.path.join(dataset_path, val_caps_filename), "w") as f:
-    json.dump(padded_val_caps_json, f)
+    f.write(json.dumps(padded_val_caps_json, indent=4))
 train_caps_len_filename = "caption_lengths_train.json"
 test_caps_len_filename = "caption_lengths_test.json"
 val_caps_len_filename = "caption_lengths_val.json"
 with open(os.path.join(dataset_path, train_caps_len_filename), "w") as f:
-    json.dump(length_train_caps_json, f)
+    f.write(json.dumps(length_train_caps_json, indent=4))
 with open(os.path.join(dataset_path, test_caps_len_filename), "w") as f:
-    json.dump(length_test_caps_json, f)
+    f.write(json.dumps(length_test_caps_json, indent=4))
 with open(os.path.join(dataset_path, val_caps_len_filename), "w") as f:
-    json.dump(length_val_caps_json, f)
+    f.write(json.dumps(length_val_caps_json, indent=4))
 
 print(f"Duration: {time.time()-start}")
