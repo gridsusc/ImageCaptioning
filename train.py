@@ -6,37 +6,40 @@ import torch
 from nltk.translate.bleu_score import corpus_bleu
 from torch.nn.utils.rnn import pack_padded_sequence
 from torch.utils.data import DataLoader
+from torchvision import transforms
 
-from all_models import *
-from pytorch_dataset_class import *
+from all_models import decoder_with_attention_net, encoder
+from pytorch_dataset_class import fetch_data
 
-with open("./dataset/word_to_index_map.json") as f:
-    n_words = max(json.load(f).values())+1
+dataset_path_suffix = "dataset_0.01"
+dataset_path = os.path.join(os.path.dirname(__file__), dataset_path_suffix)
 
-dataset_path = "./dataset"
+with open(os.path.join(dataset_path, "index_to_word.json"), "r") as f:
+    idx2word = json.load(f)
+idx2word = {int(k): v for k, v in idx2word.items()}
+
 attention_size = 512
-one_hot_size = n_words
+one_hot_size = len(idx2word)
 embedding_size = 512
 dropout_probab = 0.5
 
 doubly_stochastic_regularization_parameter = 1
 
 # n_epochs = 120
-n_epochs = 5
-no_progress_epoch_allowance = 3
+n_epochs = 10
+no_progress_epoch_allowance = 8
 bs = 24  # Batch size
 lr = 1e-3  # Learning rate
-pf = 64  # Print frequency
+pf = 32  # Print frequency
 
-ckpt_filepath = f"./model_files/best_model_{dropout_probab}dropout.pth.tar"
+save_dir = "model_files"
+os.makedirs(save_dir, exist_ok=True)
+ckpt_filedir = os.path.join(os.path.dirname(__file__),save_dir)
+ckpt_filename = f"best_model_{dropout_probab}dropout_{dataset_path_suffix}.pth.tar"
+ckpt_filepath = os.path.join(ckpt_filedir,ckpt_filename)
 
 device = "mps" if torch.backends.mps.is_available() else "cuda" if torch.cuda.is_available() else "cpu"
 print(f"Device being used is {device}")
-
-with open(os.path.join(dataset_path, "index_to_word.json"), "r") as f:
-    idx2word = json.load(f)
-
-idx2word = {int(k): v for k, v in idx2word.items()}
 
 train_loss_list = []
 
@@ -69,10 +72,10 @@ def train(data_loader, encoder, dec, optimizer, loss_fn):
             map(lambda a: a - 1, sorted_caps_len)
         )  ### As <eos> token was not decoded
 
-        predictions = torch.nn.utils.rnn.pack_padded_sequence(
+        predictions = pack_padded_sequence(
             predictions, caps_len_minus1, batch_first=True
         )
-        to_be_predicted = torch.nn.utils.rnn.pack_padded_sequence(
+        to_be_predicted = pack_padded_sequence(
             to_be_predicted, caps_len_minus1, batch_first=True
         )
 
@@ -103,6 +106,7 @@ def train(data_loader, encoder, dec, optimizer, loss_fn):
     avg_loss_epoch = avg_loss_epoch[0] / avg_loss_epoch[1]
     global train_loss_list
     train_loss_list.append(avg_loss_epoch)
+    print(f"Epoch took {time.time()-epoch_start}")
 
 
 def validation(data_loader, encoder, decoder_with_attention_net, loss_fn):
@@ -137,10 +141,10 @@ def validation(data_loader, encoder, decoder_with_attention_net, loss_fn):
 
             predictions_for_bleu = predictions.clone()
 
-            predictions = torch.nn.utils.rnn.pack_padded_sequence(
+            predictions = pack_padded_sequence(
                 predictions, caps_len_minus1, batch_first=True
             )
-            to_be_predicted = torch.nn.utils.rnn.pack_padded_sequence(
+            to_be_predicted = pack_padded_sequence(
                 to_be_predicted, caps_len_minus1, batch_first=True
             )
 
@@ -208,17 +212,17 @@ def validation(data_loader, encoder, decoder_with_attention_net, loss_fn):
     return bleuscore
 
 
-enc = encoder().to(device)
+enc = encoder(encoder_image_size = 16).to(device)
 dec = decoder_with_attention_net(
     attention_size, one_hot_size, embedding_size, dropout_probab, device
 ).to(device)
 # decoder_optimizer = torch.optim.Adam(params=filter(lambda p: p.requires_grad, dec.parameters()),lr=lr)
 optimizer = torch.optim.Adam(dec.parameters(), lr=lr)
-loss_fn = nn.CrossEntropyLoss().to(device)
+loss_fn = torch.nn.CrossEntropyLoss().to(device)
 normalize = transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
 transform = transforms.Compose([normalize])
-train_intermediate = fetch_data("./dataset", "train", transform=transform)
-val_intermediate = fetch_data("./dataset", "val", transform=transform)
+train_intermediate = fetch_data(dataset_path, "train", transform=transform)
+val_intermediate = fetch_data(dataset_path, "val", transform=transform)
 train_loader = DataLoader(train_intermediate, batch_size=bs, shuffle=True)
 val_loader = DataLoader(val_intermediate, batch_size=bs, shuffle=True)
 
@@ -243,3 +247,4 @@ for i in range(n_epochs):
     else:
         no_progress_epochs += 1
         print(f"No progress for {no_progress_epochs} epochs")
+    print(f"Training completed for {i+1} epochs")

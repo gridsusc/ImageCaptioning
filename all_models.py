@@ -4,11 +4,11 @@ from torchvision import models, transforms
 
 ### Assuming here that we encode our image to 14x14
 class encoder(nn.Module):
-    def __init__(self):
+    def __init__(self,encoder_image_size = 14):
         super(encoder, self).__init__()
         cnn_full = models.resnet101(weights="ResNet101_Weights.DEFAULT")
         layers = list(cnn_full.children())[:-2]
-        layers.append(nn.AdaptiveAvgPool2d((14, 14)))
+        layers.append(nn.AdaptiveAvgPool2d((encoder_image_size, encoder_image_size)))
         self.all_layers_encoder = nn.Sequential(*layers)
 
     def forward(self, x):
