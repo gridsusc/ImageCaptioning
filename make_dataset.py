@@ -15,10 +15,11 @@ from torchvision import transforms
 
 start = time.time()
 
+fraction = 1
 ### Defining all the file paths and creating our dataset_path if it does not exist already
 images_path = "./Images/"
 split_path = "./caption_datasets/"
-dataset_path = "./dataset/"
+dataset_path = f"./dataset_{fraction}/" if fraction!=1 else "./dataset/"
 os.makedirs(dataset_path, exist_ok=True)
 
 ### Getting the ordered list of all image names in all splits
@@ -35,7 +36,7 @@ for file, split in file_split:
     if split == "val":
         val.append(file)
 
-train,test,val = train[:60],test[:10],val[:10]
+train,test,val = train[:len(train)*fraction],test[:len(test)*fraction],val[:len(val)*fraction]
 
 print(
     f"Number of images in:\ntrain = {len(train)}\ntest = {len(test)}\nval = {len(val)}\n"
@@ -52,7 +53,7 @@ def createHDF5(images_path, names, split, dataset_path):
         tensor_img = transforms.Compose(
             [
                 transforms.PILToTensor(),
-                transforms.Resize([256, 256]),
+                transforms.Resize([256, 256],antialias=True),
                 transforms.ConvertImageDtype(torch.float),
             ]
         )
@@ -100,12 +101,13 @@ for name in val:
     val_caps_json.extend(captions_for_image)
 
 ### Generating a vocab (based on the train data) with the word2idx and idx2word saved in JSONs
+minWordFreq = 5
 sortedWords = sorted(wordCount.items(), key=lambda a: -a[1])
+sortedWords = list(filter(lambda a:a[1]>=minWordFreq,sortedWords))
 vocab_size = 5000
 if len(sortedWords) < vocab_size:
     vocab_size = len(sortedWords)
 word_to_index = {word[0]: i for i, word in enumerate(sortedWords[:vocab_size])}
-# tokens = {"<sos>": vocab_size+1, "<eos>": vocab_size+2, "<pad>": vocab_size+3, "<unk>": vocab_size+4}
 tokens = {
     "<sos>": vocab_size,
     "<eos>": vocab_size + 1,
@@ -113,7 +115,7 @@ tokens = {
     "<unk>": vocab_size + 3,
 }  ## Had to fix this later while writing all_models.py
 word_to_index.update(tokens)
-index_to_word = {v: k for k, v in word_to_index.items()}
+index_to_word = {int(v): k for k, v in word_to_index.items()}
 word2idx_filename = "word_to_index_map.json"
 idx2word_filename = "index_to_word.json"
 with open(os.path.join(dataset_path, word2idx_filename), "w") as f:

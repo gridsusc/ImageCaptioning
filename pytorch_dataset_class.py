@@ -51,7 +51,7 @@ class fetch_data(Dataset):
             ]
         )
         if self.split == "train":
-            return img, caption, caplen
+            return img, caption, caplen#, self.captions[i]
         else:
             all_captions_for_image = []
             start = (i // self.n_captions_per_image) * self.n_captions_per_image
@@ -68,7 +68,17 @@ class fetch_data(Dataset):
                         for word in self.captions[i]
                     ]
                 )
-            return img, caption, caplen, torch.FloatTensor(all_captions_for_image)
+            return img, caption, caplen, torch.FloatTensor(all_captions_for_image)#, self.captions[i]
 
     def __len__(self):
         return len(self.captions)
+
+if __name__=="__main__":
+    dataset = fetch_data("dataset_0.01", "train", transform=None)
+
+    img, caption, caplen, raw_caption = dataset[25]
+    img = img.permute(1,2,0)
+    import matplotlib.pyplot as plt
+    plt.imshow(img)
+    plt.show()
+    print(raw_caption)

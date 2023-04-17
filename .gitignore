@@ -139,3 +139,4 @@ captions.txt
 caption_datasets/
 dataset/
 .DS_Store
+model_files
