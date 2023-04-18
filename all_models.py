@@ -4,6 +4,7 @@ from torchvision import models
 class encoder(nn.Module):
     def __init__(self,encoder_image_size = 14):
         super(encoder, self).__init__()
+        self.encoder_image_size = encoder_image_size
         cnn_full = models.resnet101(weights="ResNet101_Weights.DEFAULT")
         layers = list(cnn_full.children())[:-2]
         layers.append(nn.AdaptiveAvgPool2d((encoder_image_size, encoder_image_size)))
