@@ -4,9 +4,12 @@ import torch
 from PIL import Image
 from torchvision import transforms
 import torch.nn.functional as F
-from all_models import encoder
 
-dataset_path_suffix = "dataset"
+fraction = 0.05
+lr = 8e-4  # Learning rate
+dropout_probab = 0.5
+
+dataset_path_suffix = f"dataset_{fraction}" if fraction!=1 else "dataset"
 dataset_path = os.path.join(os.path.dirname(__file__), dataset_path_suffix)
 with open(os.path.join(dataset_path, "index_to_word.json"), "r") as f:
     idx2word = json.load(f)
@@ -36,8 +39,6 @@ def inference(im_path, saved_model_path, save_caption_file=False):
     image = image.unsqueeze(0)
     enc_image = enc(image)
     enc_image = enc_image.view(enc_image.size(0),-1, 2048)
-    n_pixels = enc_image.size(dim=1)
-
     prev_word = "<sos>"
     hidden_state = dec.initialize_hidden_state(enc_image.mean(dim=1))
     cell_state = dec.initialize_cell_state(enc_image.mean(dim=1))
@@ -71,7 +72,11 @@ def inference(im_path, saved_model_path, save_caption_file=False):
     return caption
 
 if __name__=="__main__":
-    model_path = "model_files/best_model_0.5dropout_dataset.pth.tar"
+    save_dir = "model_files"
+    os.makedirs(save_dir, exist_ok=True)
+    ckpt_filedir = os.path.join(os.path.dirname(__file__),save_dir)
+    ckpt_filename = f"best_model_{lr}LR_{dropout_probab}dropout_{dataset_path_suffix}.pth.tar"
+    ckpt_filepath = os.path.join(ckpt_filedir,ckpt_filename)
     image_path = "sample2.jpg"
-    caption = inference(im_path = image_path, saved_model_path = model_path, save_caption_file = False)
+    caption = inference(im_path = image_path, saved_model_path = ckpt_filepath, save_caption_file = False)
     print(caption)

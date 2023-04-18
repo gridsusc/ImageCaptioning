@@ -11,7 +11,8 @@ from torchvision import transforms
 from all_models import decoder_with_attention_net, encoder
 from pytorch_dataset_class import fetch_data
 
-dataset_path_suffix = "dataset"
+fraction = 0.05
+dataset_path_suffix = f"dataset_{fraction}" if fraction!=1 else "dataset"
 dataset_path = os.path.join(os.path.dirname(__file__), dataset_path_suffix)
 
 with open(os.path.join(dataset_path, "index_to_word.json"), "r") as f:
@@ -26,18 +27,17 @@ dropout_probab = 0.5
 doubly_stochastic_regularization_parameter = 1
 
 # n_epochs = 120
-n_epochs = 10
+n_epochs = 20
 no_progress_epoch_allowance = 8
 bs = 32  # Batch size
-lr = 4e-4  # Learning rate
+lr = 8e-4  # Learning rate
 pf = 8  # Print frequency
 
 save_dir = "model_files"
 os.makedirs(save_dir, exist_ok=True)
 ckpt_filedir = os.path.join(os.path.dirname(__file__),save_dir)
-ckpt_filename = f"best_model_{dropout_probab}dropout_{dataset_path_suffix}.pth.tar"
+ckpt_filename = f"best_model_{lr}LR_{dropout_probab}dropout_{dataset_path_suffix}.pth.tar"
 ckpt_filepath = os.path.join(ckpt_filedir,ckpt_filename)
-
 # device = "mps" if torch.backends.mps.is_available() else "cuda" if torch.cuda.is_available() else "cpu"
 device = "cpu"
 print(f"Device being used is {device}")
@@ -224,6 +224,7 @@ no_progress_epochs = 0
 if os.path.exists(ckpt_filepath):
     prev_state = torch.load(ckpt_filepath)
     start_epoch = prev_state["completed_epochs"] + 1
+    print(f"Saved model retrieved for {start_epoch-1} epoch")
     max_bleu = prev_state["val_bleuscore"]
     enc = prev_state["encoder"]
     dec = prev_state["decoder"]
@@ -231,7 +232,8 @@ if os.path.exists(ckpt_filepath):
     train_loss_list = prev_state["train_loss_list"]
     val_loss_list = prev_state["val_loss_list"]
 else:
-    start_epoch = 0
+    print("No previous model found ...")
+    start_epoch = 1
     max_bleu = 0
     enc = encoder(encoder_image_size = 16).to(device)
     dec = decoder_with_attention_net(attention_size, one_hot_size, embedding_size, dropout_probab, device).to(device)

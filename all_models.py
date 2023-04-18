@@ -1,6 +1,6 @@
 import torch
 from torch import nn
-from torchvision import models, transforms
+from torchvision import models
 class encoder(nn.Module):
     def __init__(self,encoder_image_size = 14):
         super(encoder, self).__init__()
