@@ -19,10 +19,11 @@ def load_image(im_path):
     return img
 
 def inference_plain(im_path, saved_model_path, save_caption_file=False):
-    device = "mps" if torch.backends.mps.is_available() else "cuda" if torch.cuda.is_available() else "cpu"
+    # device = "mps" if torch.backends.mps.is_available() else "cuda" if torch.cuda.is_available() else "cpu"
+    device = "cpu"
     print(f"For plain, using device = {device}")
     max_caption_size = 25
-    state_dict = torch.load(saved_model_path)
+    state_dict = torch.load(saved_model_path, map_location=device)
     enc = state_dict["encoder"].to(device)
     dec = state_dict["decoder"].to(device)
 
@@ -64,10 +65,10 @@ def inference_plain(im_path, saved_model_path, save_caption_file=False):
 
 def inference_beam_search(im_path, saved_model_path, beam_size = 5, save_caption_file=False):
     max_caption_size = 25
-    device = "mps" if torch.backends.mps.is_available() else "cuda" if torch.cuda.is_available() else "cpu"
+    # device = "mps" if torch.backends.mps.is_available() else "cuda" if torch.cuda.is_available() else "cpu"
+    device = 'cpu'
     print(f"For beam search, using device = {device}")
-    # device = 'cpu'
-    state_dict = torch.load(saved_model_path)
+    state_dict = torch.load(saved_model_path, map_location=device)
     enc = state_dict["encoder"].to(device)
     dec = state_dict["decoder"].to(device)
 
