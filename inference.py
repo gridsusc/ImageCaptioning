@@ -19,13 +19,15 @@ def load_image(im_path):
     return img
 
 def inference_plain(im_path, saved_model_path, save_caption_file=False):
+    device = "mps" if torch.backends.mps.is_available() else "cuda" if torch.cuda.is_available() else "cpu"
+    print(f"For plain, using device = {device}")
     max_caption_size = 25
     state_dict = torch.load(saved_model_path)
-    enc = state_dict["encoder"]
-    dec = state_dict["decoder"]
+    enc = state_dict["encoder"].to(device)
+    dec = state_dict["decoder"].to(device)
 
     image = load_image(im_path)
-    image = image.unsqueeze(0)
+    image = image.unsqueeze(0).to(device)
     enc_image = enc(image)
     enc_image = enc_image.view(enc_image.size(0),-1, 2048)
     prev_word = "<sos>"
@@ -38,7 +40,7 @@ def inference_plain(im_path, saved_model_path, save_caption_file=False):
         gating_scalar = dec.layer_to_get_gating_scalar(hidden_state)
         gating_scalar = dec.sigmoid_act(gating_scalar)
         encoding_with_attention = gating_scalar * ((enc_image* alphas_for_each_pixel.unsqueeze(2)).sum(dim=1))
-        embedding_value = dec.embedding_layer(torch.LongTensor([word2idx[prev_word]]))
+        embedding_value = dec.embedding_layer(torch.LongTensor([word2idx[prev_word]]).to(device))
         hidden_state, cell_state = dec.lstm_cell(torch.cat([embedding_value,encoding_with_attention,],dim=1,),(hidden_state,cell_state))
         scores = dec.layer_to_get_word_scores(hidden_state)
         scores = (F.softmax(scores,dim=1).squeeze().tolist())
@@ -62,14 +64,15 @@ def inference_plain(im_path, saved_model_path, save_caption_file=False):
 
 def inference_beam_search(im_path, saved_model_path, beam_size = 5, save_caption_file=False):
     max_caption_size = 25
-    # device = "mps" if torch.backends.mps.is_available() else "cuda" if torch.cuda.is_available() else "cpu"
-    device = 'cpu'
+    device = "mps" if torch.backends.mps.is_available() else "cuda" if torch.cuda.is_available() else "cpu"
+    print(f"For beam search, using device = {device}")
+    # device = 'cpu'
     state_dict = torch.load(saved_model_path)
-    enc = state_dict["encoder"]
-    dec = state_dict["decoder"]
+    enc = state_dict["encoder"].to(device)
+    dec = state_dict["decoder"].to(device)
 
     image = load_image(im_path)
-    image = image.unsqueeze(0)
+    image = image.unsqueeze(0).to(device)
     enc_image = enc(image)
     enc_image = enc_image.view(enc_image.size(0),-1, 2048)
     n_pixels = enc_image.shape[1]
@@ -88,7 +91,7 @@ def inference_beam_search(im_path, saved_model_path, beam_size = 5, save_caption
     cell_state = dec.initialize_cell_state(enc_image.mean(dim=1))
 
     while time_step<max_caption_size:
-        embedding_value = dec.embedding_layer(caption_prev_words).squeeze(1)
+        embedding_value = dec.embedding_layer(caption_prev_words).squeeze(1).to(device)
         alphas_for_each_pixel = dec.attention_net(enc_image, hidden_state)
         gating_scalar = dec.layer_to_get_gating_scalar(hidden_state)
         gating_scalar = dec.sigmoid_act(gating_scalar)
@@ -144,7 +147,7 @@ def inference_beam_search(im_path, saved_model_path, beam_size = 5, save_caption
 
 if __name__=="__main__":
     fraction = 1
-    lr = 8e-4  # Learning rate
+    lr = 4e-4  # Learning rate
     dropout_probab = 0.5
 
     dataset_path_suffix = f"dataset_{fraction}" if fraction!=1 else "dataset"
@@ -161,7 +164,7 @@ if __name__=="__main__":
     ckpt_filedir = os.path.join(os.path.dirname(__file__),save_dir)
     ckpt_filename = f"best_model_{lr}LR_{dropout_probab}dropout_{dataset_path_suffix}.pth.tar"
     ckpt_filepath = os.path.join(ckpt_filedir,ckpt_filename)
-    ckpt_filepath = "model_files_backup/best_model_0.5dropout_dataset.pth.tar"
+    # ckpt_filepath = "model_files_backup/best_model_0.5dropout_dataset.pth.tar"
     
     image_path = "sample2.jpg"
     caption = inference_plain(im_path = image_path, saved_model_path = ckpt_filepath, save_caption_file = False)
