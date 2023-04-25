@@ -34,14 +34,14 @@ Before starting, an anaconda environment can be created using the ```imcap.yml``
 
 ___________________________________________________________________________
 <img src="sample1.jpg"  width="400" height="300"> <br>
-Caption without beam search: a group of people stand in front of a building
+Caption without beam search: a group of people stand in front of a building <br>
 Caption with beam search (beam_size = 5):  a group of people walking down the street
 ___________________________________________________________________________
 <img src="sample2.jpg"  width="350" height="300"> <br>
-Caption without beam search: a boy in a helmet rides a bike
+Caption without beam search: a boy in a helmet rides a bike <br>
 Caption with beam search (beam_size = 5):  a young boy wearing a helmet rides a bike
 ___________________________________________________________________________
 <img src="sample3.jpg"  width="350" height="300"> <br>
-Caption without beam search: a boy in a swimming pool
+Caption without beam search: a boy in a swimming pool <br>
 Caption with beam search (beam_size = 5):  a boy swimming in a pool
 ___________________________________________________________________________
