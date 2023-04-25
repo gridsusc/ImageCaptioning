@@ -101,7 +101,7 @@ def inference_beam_search(im_path, saved_model_path, beam_size = 5, save_caption
         alphas_for_each_pixel = alphas_for_each_pixel.view(-1, 16, 16)
         hidden_state, cell_state = dec.lstm_cell(torch.cat([embedding_value,encoding_with_attention,],dim=1,),(hidden_state,cell_state))
         scores = dec.layer_to_get_word_scores(hidden_state)
-        scores = F.softmax(scores,dim=1)
+        scores = F.log_softmax(scores,dim=1)
         scores = top_caption_scores.expand(scores.shape) + scores
 
         if time_step==0:
@@ -167,8 +167,9 @@ if __name__=="__main__":
     ckpt_filepath = os.path.join(ckpt_filedir,ckpt_filename)
     # ckpt_filepath = "model_files_backup/best_model_0.5dropout_dataset.pth.tar"
     
-    image_path = "sample2.jpg"
+    image_path = "sample3.jpg"
     caption = inference_plain(im_path = image_path, saved_model_path = ckpt_filepath, save_caption_file = False)
     print("Without beam search:", caption)
-    caption = inference_beam_search(im_path = image_path, saved_model_path = ckpt_filepath, save_caption_file = False)
-    print("With beam search:", caption)
+    beam_size = 5
+    caption = inference_beam_search(im_path = image_path, saved_model_path = ckpt_filepath, beam_size = beam_size, save_caption_file = False)
+    print(f"With beam search (beam_size = {beam_size}):", caption)

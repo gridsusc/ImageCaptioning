@@ -130,13 +130,14 @@ dmypy.json
 
 # Project specific additions
 archive/
-Images/
+Images/*.jpg
 archive.zip
 *.hdf5
 *.json
 *.pdf
 captions.txt
-caption_datasets/
+caption_datasets/*.json
+caption_datasets/*.txt
 dataset/
 .DS_Store
 model_files*
